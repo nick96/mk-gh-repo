@@ -5,6 +5,7 @@ from requests import Session
 from colorama import init, Fore
 import click
 import clipboard
+from dotenv import load_dotenv, find_dotenv
 
 
 def bool_input(msg, default=False):
@@ -25,11 +26,11 @@ def bool_input(msg, default=False):
 @click.option(
     "--token",
     "-t",
-    default=lambda: os.environ.get("GITHUB_TOKEN", ""),
+    default=lambda: os.environ.get("GITHUB_TOKEN"),
     show_default="GITHUB_TOKEN",
     help="Token to use for accessing Github",
 )
-@click.option("--copy", "-c", default=False, help="Copy URI to clipboard")
+@click.option("--copy", "-c", is_flag=True, default=False, help="Copy URI to clipboard")
 @click.option("--html/--ssh", default=False, help="Print HTML of SSH URI")
 @click.option("--private/--public", default=False, help="Make a private or public repo")
 @click.argument("names", required=False, nargs=-1)
@@ -47,7 +48,7 @@ def create_repo(names, private, html, copy, token):
 
         init()
         if not resp.ok:
-            click.echo(Fore.RED + f"Failed to create {name}")
+            click.echo(Fore.RED + f"Failed to create {name}: {resp.status_code} - {resp.content.decode('utf-8')}")
         else:
             uri = resp.json()["ssh_url"]
             if html:
@@ -59,4 +60,5 @@ def create_repo(names, private, html, copy, token):
 
 
 if __name__ == "__main__":
+    load_dotenv(find_dotenv())
     create_repo()
